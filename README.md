@@ -74,11 +74,9 @@ Things that were hard to work out and would be annoying to rediscover:
 - **SVG transforms work in user units, not pixels.** The nub cap has to be moved by
   a normalised vector times a constant, never by a pixel measurement.
 - **`filter` and `backdrop-filter` on the same element** makes it its own stacking
-  context and the frost silently stops working. The blur lives on `.bar-side`, the
-  frost on `.bar`.
+  context and the frost silently stops working.
 - **Web Audio: never start and stop oscillators.** Everything runs forever and only
-  the volumes move, because starting and stopping clicks. `setTargetAtTime`, never
-  plain assignment.
+  the volumes move, because starting and stopping clicks.
 
 ## Next
 
