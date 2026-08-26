@@ -8,14 +8,15 @@
 
 export const CONFIG = {
 
-  // The feed's real resolution: 16:9, roughly what a cheap streaming pet cam
-  // actually sends.
+  // The feed's real resolution: 20:9, matching the widescreen recess in the
+  // chassis. Wider than a phone stream really is, but the game is played on
+  // this picture, so the screen gets the real estate.
   // 480x270 was a leftover from the retro-LCD look, which is long gone. The
   // lens shader resamples the picture a second time, so a soft source got
   // softer — this renders sharp enough to survive that and still stay a
   // little mushy, like a real stream.
   lcd: {
-    width: 960,
+    width: 1200,
     height: 540,
   },
 

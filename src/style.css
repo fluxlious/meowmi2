@@ -14,7 +14,8 @@
 --------------------------------------------------------------------------- */
 
 :root {
-  /* The device is 100u wide and the viewBox is 1000x570, so 1u = 10 SVG units.
+  /* The device is 115.2u wide and the viewBox is 1152x570, so 1u = 10 SVG
+     units — keep those two in lockstep or every control subtly resizes.
      Dropped from 0.96/1.55 so the handset sits in the page rather than filling
      it — an object on a surface, not a layout. */
   --u: min(0.8vw, 1.3vh);
@@ -44,8 +45,13 @@ body {
 
 .device {
   position: relative;
-  width: calc(var(--u) * 100);
-  aspect-ratio: 1000 / 570;
+  width: calc(var(--u) * 115.2);
+  aspect-ratio: 1152 / 570;
+  /* The body grid centres the device+hint PAIR, so the hint below drags the
+     device above true centre. This offsets by half the hint's footprint
+     (its line box plus the grid gap), which puts the device itself in the
+     middle and leaves the hint in the spare space underneath. */
+  margin-top: calc(var(--u) * 2.6);
   filter: drop-shadow(0 calc(var(--u) * 1.4) calc(var(--u) * 3.5) rgba(0, 0, 0, 0.7));
 }
 
@@ -83,7 +89,10 @@ body {
 .screen-bounce {
   fill: url(#gBounce);
   mix-blend-mode: screen;
-  opacity: 0.5;
+  /* 0.5 was true-to-life but read as barely there; 0.62 is where the warmth
+     registers without the plastic looking backlit. Past ~0.7 the shell stops
+     reading as lit plastic and starts reading as orange plastic. */
+  opacity: 0.62;
   pointer-events: none;
 }
 
@@ -331,14 +340,16 @@ body {
    Positioned over the SVG's .screen-lip. The SVG scales uniformly and the
    wrapper is locked to the same aspect ratio, so these percentages stay
    registered at every size.
-   Mirrors: x=196 y=32 w=608 h=342 in a 1000x570 viewBox (exactly 16:9).
+   Mirrors: x=196 y=32 w=760 h=342 in a 1152x570 viewBox (20:9 — the game is
+   played here, so the widened chassis gave every extra unit to the screen
+   and none to the controls).
 ========================================================================== */
 
 .screen {
   position: absolute;
-  left:   19.6%;
+  left:   17.014%;
   top:     5.614%;
-  width:  60.8%;
+  width:  65.972%;
   height: 60.0%;
 }
 
@@ -469,8 +480,10 @@ body {
 }
 
 /* The glass carries its own grain, so the pane looks like part of the signal
-   instead of a clean surface floating in front of it. */
-.bar::after {
+   instead of a clean surface floating in front of it. Shared with the bottom
+   strip — two panes cut from the same sheet. */
+.bar::after,
+.hud::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -530,29 +543,45 @@ body {
 }
 
 .ammo-wrap { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.6); }
-.ammo {
-  display: inline-flex;
-  gap: calc(var(--u) * 0.26);
-  filter: drop-shadow(0 0 2px rgba(255, 107, 26, 0.85))
-          drop-shadow(0 0 5px rgba(255, 107, 26, 0.4));
-}
+.ammo { display: inline-flex; gap: calc(var(--u) * 0.26); }
+
+/* The glow belongs on each live pip, not on the strip. On the strip it lit
+   the spent pips too — a dead cell that still emits is not a dead cell — and
+   a filter on a parent glows the whole silhouette at once, so the narrow gaps
+   between six pips filled in and the row bloomed into one bar.
+   The radius is pulled in as well: a pip is by far the largest solid block in
+   the HUD, and glow scales with how much lit area is throwing it, so the
+   numbers that suit a hairline wifi bar are far too much here. */
 .ammo i {
   width: calc(var(--u) * 0.58);
   height: calc(var(--u) * 1.2);
   background: var(--treat);
   border-radius: 1px;
+  filter: drop-shadow(0 0 1.5px rgba(255, 107, 26, 0.7))
+          drop-shadow(0 0 4px rgba(255, 107, 26, 0.25));
 }
-.ammo i.spent { background: rgba(255, 255, 255, 0.2); }
+.ammo i.spent { background: rgba(255, 255, 255, 0.2); filter: none; }
 
 /* --- overlay text, bottom ----------------------------------------------- */
 
+/* The same pane of glass as .bar, upside down: border and inner highlight on
+   the TOP edge, because that is the edge this one meets the picture with.
+   Note there is no filter here — the text blur lives on the span inside,
+   for the same reason .bar keeps its blur on .bar-side: filter and
+   backdrop-filter on one element silently kills the frost. */
 .hud {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(var(--u) * 1) calc(var(--u) * 1.2);
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 1.1);
+  background: rgba(10, 13, 16, 0.3);
+  backdrop-filter: blur(5px) saturate(1.15);
+  -webkit-backdrop-filter: blur(5px) saturate(1.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+  overflow: hidden;
   font-family: "Share Tech Mono", ui-monospace, monospace;
   font-size: calc(var(--u) * 1.5);
   letter-spacing: 0.14em;
@@ -560,10 +589,8 @@ body {
   color: #F2EFE4;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.95),
                -0.55px 0 0 rgba(255, 70, 60, 0.36),
-                0.55px 0 0 rgba(70, 140, 255, 0.32);
-  /* Softer than the top strip. This text sits over moving picture rather than
-     a backing bar, so it needs more help to stop looking pasted on. */
-  filter: blur(0.7px);
+                0.55px 0 0 rgba(70, 140, 255, 0.32),
+               0 0 6px rgba(242, 239, 228, 0.32);
   pointer-events: none;
 }
 
@@ -611,7 +638,13 @@ body {
   78%       { opacity: 0.55; }
   79%, 100% { opacity: 1; }
 }
-.hud span { animation: signalDrop 9s steps(1) infinite; }
+/* Blurred at the bar's 0.45px, not the old 0.7px — the extra softness was
+   compensation for sitting on bare moving picture, and the glass now does
+   that job. */
+.hud span {
+  animation: signalDrop 9s steps(1) infinite;
+  filter: blur(0.45px);
+}
 
 /* === degrading the labels into the picture ===============================
    The scanline strips went too far and read as a filter rather than as wear.

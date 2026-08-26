@@ -32,7 +32,7 @@
        Controls keep the ids the input code already looks for, so main.js
        barely notices the change.
        ===================================================================== -->
-  <svg class="chassis" viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg">
+  <svg class="chassis" viewBox="0 0 1152 570" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <!-- One light direction, top-left, committed to everywhere. -->
       <linearGradient id="gShell" x1="0.15" y1="0" x2="0.7" y2="1">
@@ -75,7 +75,7 @@
       </filter>
 
       <!-- The screen throws warm light onto the plastic around it. -->
-      <radialGradient id="gBounce" cx="0.5" cy="0.5" r="0.4">
+      <radialGradient id="gBounce" cx="0.5" cy="0.5" r="0.46">
         <stop offset="0"    stop-color="#FFB070" stop-opacity="0.5"/>
         <stop offset="0.3"  stop-color="#FF9A50" stop-opacity="0.26"/>
         <stop offset="0.58" stop-color="#FF8A3C" stop-opacity="0.09"/>
@@ -101,52 +101,60 @@
         <rect x="42" y="132" width="116" height="56"  rx="14"/>
       </clipPath>
 
+      <clipPath id="clipWell">
+        <rect x="65" y="95"  width="70"  height="130" rx="18"/>
+        <rect x="35" y="125" width="130" height="70"  rx="18"/>
+      </clipPath>
+
       <clipPath id="clipShell">
-        <path d="M58,4 H942 Q996,4 996,58 V210 Q996,330 958,420 Q918,516 828,548
-                 Q742,578 690,510 Q648,452 588,438 H412 Q352,452 310,510
+        <path d="M58,4 H1094 Q1148,4 1148,58 V210 Q1148,330 1110,420 Q1070,516 980,548
+                 Q894,578 842,510 Q800,452 740,438 H412 Q352,452 310,510
                  Q258,578 172,548 Q82,516 42,420 Q4,330 4,210 V58 Q4,4 58,4 Z"/>
       </clipPath>
     </defs>
 
     <!-- ---- shell ---- -->
     <path class="shell"
-          d="M58,4 H942 Q996,4 996,58 V210 Q996,330 958,420 Q918,516 828,548
-             Q742,578 690,510 Q648,452 588,438 H412 Q352,452 310,510
+          d="M58,4 H1094 Q1148,4 1148,58 V210 Q1148,330 1110,420 Q1070,516 980,548
+             Q894,578 842,510 Q800,452 740,438 H412 Q352,452 310,510
              Q258,578 172,548 Q82,516 42,420 Q4,330 4,210 V58 Q4,4 58,4 Z"/>
     <g clip-path="url(#clipShell)">
-      <rect class="screen-bounce" x="-100" y="-297" width="1200" height="1000"/>
-      <rect class="shell-grain" x="0" y="0" width="1000" height="570" filter="url(#fGrain)"/>
+      <!-- The rect is deliberately larger than the shell: gBounce's reach is
+           r x THIS BOX (a radial gradient wider than its rect gets sliced off
+           flat), and the box is placed so the gradient centres on the screen
+           at (576, 203). Resize with care -- x/y must move by half of any
+           change to width/height or the light drifts off the glass. -->
+      <rect class="screen-bounce" x="-124" y="-232" width="1400" height="870"/>
+      <rect class="shell-grain" x="0" y="0" width="1152" height="570" filter="url(#fGrain)"/>
     </g>
 
     <!-- parting seam where the two halves of the shell meet -->
     <path class="seam-dark"  d="M22,214 Q22,332 58,418 Q96,508 176,532 Q252,556 300,498"/>
     <path class="seam-light" d="M22,217 Q22,335 58,421 Q96,511 176,535 Q252,559 300,501"/>
-    <path class="seam-dark"  d="M978,214 Q978,332 942,418 Q904,508 824,532 Q748,556 700,498"/>
-    <path class="seam-light" d="M978,217 Q978,335 942,421 Q904,511 824,535 Q748,559 700,501"/>
+    <path class="seam-dark"  d="M1130,214 Q1130,332 1094,418 Q1056,508 976,532 Q900,556 852,498"/>
+    <path class="seam-light" d="M1130,217 Q1130,335 1094,421 Q1056,511 976,535 Q900,559 852,501"/>
 
     <!-- ---- screen recess, with a chamfered lip ---- -->
-    <rect class="screen-well" x="186" y="24" width="628" height="358" rx="14"/>
-    <rect class="screen-lip"  x="196" y="32" width="608" height="342" rx="10"/>
+    <rect class="screen-well" x="186" y="24" width="780" height="358" rx="14"/>
+    <rect class="screen-lip"  x="196" y="32" width="760" height="342" rx="10"/>
 
     <!-- ---- d-pad ----
          The cutout is 7 units bigger all round. That clearance gap is what a
-         moulded part actually looks like, and boxes never have one. -->
-    <g class="pad-well">
-      <rect x="65" y="95"  width="70"  height="130" rx="18"/>
-      <rect x="35" y="125" width="130" height="70"  rx="18"/>
-    </g>
-    <g class="pad-cross">
-      <rect x="72" y="102" width="56"  height="116" rx="14"/>
-      <rect x="42" y="132" width="116" height="56"  rx="14"/>
-    </g>
-    <g class="inset-shade">
-      <rect x="72" y="102" width="56"  height="116" rx="14"/>
-      <rect x="42" y="132" width="116" height="56"  rx="14"/>
-    </g>
-    <g class="part-grain" filter="url(#fGrainIn)">
-      <rect x="72" y="102" width="56"  height="116" rx="14"/>
-      <rect x="42" y="132" width="116" height="56"  rx="14"/>
-    </g>
+         moulded part actually looks like, and boxes never have one.
+
+         Each layer is ONE square clipped to the cross, not a vertical rect
+         stacked on a horizontal one. Two stacked rects cost three things: a
+         gradient is measured against the box it fills, so the tall arm and
+         the wide arm were shaded on different scales and the tone stepped
+         where they met; and the shadow and the grain are both see-through, so
+         the middle got painted twice and sat darker than the arms. Clipping
+         one square gives one gradient over the whole part and one coat of
+         everything. Same trick as .pad-shade below, same reason. -->
+    <rect class="pad-well"    clip-path="url(#clipWell)"  x="35" y="95"  width="130" height="130"/>
+    <rect class="pad-cross"   clip-path="url(#clipCross)" x="42" y="102" width="116" height="116"/>
+    <rect class="inset-shade" clip-path="url(#clipCross)" x="42" y="102" width="116" height="116"/>
+    <rect class="part-grain"  clip-path="url(#clipCross)" filter="url(#fGrainIn)"
+          x="42" y="102" width="116" height="116"/>
     <circle class="pad-dimple" cx="100" cy="160" r="11"/>
 
     <g id="padUp" data-dir="fwd" tabindex="0" role="button" aria-label="Drive forward">
@@ -187,35 +195,35 @@
     <text class="silk" x="100" y="406" text-anchor="middle">AIM</text>
 
     <!-- ---- speaker ---- -->
-    <text class="silk-tiny" x="900" y="52" text-anchor="middle">FCC ID: 2AK9L-MW2 &#183; CE</text>
-    <circle class="spk-ring-lip" cx="900" cy="151.5" r="47"/>
-    <circle class="spk-ring"     cx="900" cy="150"   r="47"/>
-    <circle class="spk-holes" cx="900" cy="150" r="41"/>
+    <text class="silk-tiny" x="1052" y="52" text-anchor="middle">FCC ID: 2AK9L-MW2 &#183; CE</text>
+    <circle class="spk-ring-lip" cx="1052" cy="151.5" r="47"/>
+    <circle class="spk-ring"     cx="1052" cy="150"   r="47"/>
+    <circle class="spk-holes" cx="1052" cy="150" r="41"/>
 
     <!-- ---- action keys: small, in cutouts, pictograms not words ---- -->
-    <rect class="key-well" x="836" y="228" width="128" height="60" rx="16"/>
+    <rect class="key-well" x="988" y="228" width="128" height="60" rx="16"/>
     <g id="treatBtn" tabindex="0" role="button" aria-label="Throw a treat">
-      <rect class="key-hit"  x="836" y="228" width="128" height="60"/>
-      <rect class="key-face" x="843" y="235" width="114" height="46" rx="12"/>
-      <rect class="inset-shade" x="843" y="235" width="114" height="46" rx="12"/>
-      <rect class="part-grain" filter="url(#fGrainIn)" x="843" y="235" width="114" height="46" rx="12"/>
-      <circle class="led-lip"     cx="900.7" cy="259.7" r="10.5"/>
-      <circle class="led-housing" cx="900"   cy="258"   r="10.5"/>
-      <circle class="led-treat" id="treatLed" cx="900" cy="258" r="6.4"/>
+      <rect class="key-hit"  x="988" y="228" width="128" height="60"/>
+      <rect class="key-face" x="995" y="235" width="114" height="46" rx="12"/>
+      <rect class="inset-shade" x="995" y="235" width="114" height="46" rx="12"/>
+      <rect class="part-grain" filter="url(#fGrainIn)" x="995" y="235" width="114" height="46" rx="12"/>
+      <circle class="led-lip"     cx="1052.7" cy="259.7" r="10.5"/>
+      <circle class="led-housing" cx="1052"   cy="258"   r="10.5"/>
+      <circle class="led-treat" id="treatLed" cx="1052" cy="258" r="6.4"/>
     </g>
-    <text class="silk" x="900" y="308" text-anchor="middle">TREAT</text>
+    <text class="silk" x="1052" y="308" text-anchor="middle">TREAT</text>
 
-    <rect class="key-well" x="848" y="332" width="104" height="52" rx="14"/>
+    <rect class="key-well" x="1000" y="332" width="104" height="52" rx="14"/>
     <g id="talkBtn" tabindex="0" role="button" aria-label="Talk">
-      <rect class="key-hit"  x="848" y="332" width="104" height="52"/>
-      <rect class="key-face" x="855" y="339" width="90" height="38" rx="10"/>
-      <rect class="inset-shade" x="855" y="339" width="90" height="38" rx="10"/>
-      <rect class="part-grain" filter="url(#fGrainIn)" x="855" y="339" width="90" height="38" rx="10"/>
-      <circle class="led-lip"     cx="900.6" cy="359.5" r="9"/>
-      <circle class="led-housing" cx="900"   cy="358"   r="9"/>
-      <circle class="led-talk" id="talkLed"  cx="900"   cy="358" r="5.4"/>
+      <rect class="key-hit"  x="1000" y="332" width="104" height="52"/>
+      <rect class="key-face" x="1007" y="339" width="90" height="38" rx="10"/>
+      <rect class="inset-shade" x="1007" y="339" width="90" height="38" rx="10"/>
+      <rect class="part-grain" filter="url(#fGrainIn)" x="1007" y="339" width="90" height="38" rx="10"/>
+      <circle class="led-lip"     cx="1052.6" cy="359.5" r="9"/>
+      <circle class="led-housing" cx="1052"   cy="358"   r="9"/>
+      <circle class="led-talk" id="talkLed"  cx="1052"   cy="358" r="5.4"/>
     </g>
-    <text class="silk" x="900" y="404" text-anchor="middle">TALK</text>
+    <text class="silk" x="1052" y="404" text-anchor="middle">TALK</text>
 
     <!-- ---- silkscreen and manufacturing clutter ---- -->
     <text class="brand-lip"  x="200.7" y="409.5">MEOWMI 2</text>
@@ -223,18 +231,18 @@
     <text class="silk-dim"   x="200"   y="429">MODEL MW-2</text>
 
     <g id="mute" tabindex="0" role="button" aria-label="Toggle sound">
-      <rect class="key-hit" x="682" y="392" width="122" height="34"/>
-      <circle class="mute-led" cx="696" cy="409" r="5"/>
-      <text class="silk mute-label" x="711" y="414">SOUND</text>
+      <rect class="key-hit" x="758" y="392" width="122" height="34"/>
+      <circle class="mute-led" cx="772" cy="409" r="5"/>
+      <text class="silk mute-label" x="787" y="414">SOUND</text>
     </g>
 
     <!-- the debris of manufacturing: real objects are covered in it -->
-    <rect class="port" x="444" y="395" width="52" height="11" rx="5.5"/>
-    <text class="silk-tiny" x="470" y="424" text-anchor="middle">5V &#8212; 1A</text>
-    <circle class="pinhole" cx="550" cy="400" r="3.4"/>
-    <text class="silk-tiny" x="550" y="424" text-anchor="middle">RST</text>
-    <circle class="lanyard-out" cx="826" cy="512" r="12"/>
-    <circle class="lanyard-in"  cx="826" cy="512" r="6.5"/>
+    <rect class="port" x="520" y="395" width="52" height="11" rx="5.5"/>
+    <text class="silk-tiny" x="546" y="424" text-anchor="middle">5V &#8212; 1A</text>
+    <circle class="pinhole" cx="626" cy="400" r="3.4"/>
+    <text class="silk-tiny" x="626" y="424" text-anchor="middle">RST</text>
+    <circle class="lanyard-out" cx="978" cy="512" r="12"/>
+    <circle class="lanyard-in"  cx="978" cy="512" r="6.5"/>
   </svg>
 
   <!-- =====================================================================
@@ -244,7 +252,7 @@
        ===================================================================== -->
   <div class="screen">
     <div class="lcd">
-      <canvas id="lcd" width="960" height="540"></canvas>
+      <canvas id="lcd" width="1200" height="540"></canvas>
 
       <div class="bar">
         <span class="bar-side">
