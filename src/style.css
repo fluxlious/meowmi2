@@ -1,0 +1,670 @@
+/* ---------------------------------------------------------------------------
+   MEOWMI 2 — the chassis is SVG, the screen is HTML over the top.
+
+   Two rules run through all of it:
+
+   ONE LIGHT DIRECTION. Top-left, everywhere, no exceptions. Raised parts are
+   bright on top and dark underneath; recesses are the exact inverse. The old
+   CSS put the same 1px hairline on raised AND recessed parts, which is a
+   repeated trick rather than a lighting model — and it showed.
+
+   TWO MATERIALS, NOT THREE TINTS. The shell is a faintly warm neutral, the
+   keys a distinctly cooler one, at uneven intervals. Evenly-spaced same-hue
+   greys are close to a signature of generated design.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* The device is 100u wide and the viewBox is 1000x570, so 1u = 10 SVG units.
+     Dropped from 0.96/1.55 so the handset sits in the page rather than filling
+     it — an object on a surface, not a layout. */
+  --u: min(0.8vw, 1.3vh);
+
+  --silk:       #857E74;
+  --silk-dim:   #625C54;
+
+  --treat:      #FF6B1A;
+  --red:        #FF3B30;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  gap: calc(var(--u) * 3.4);
+  background: #0B0C0D;
+  font-family: "Barlow", "Segoe UI", system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* === the handset ========================================================= */
+
+.device {
+  position: relative;
+  width: calc(var(--u) * 100);
+  aspect-ratio: 1000 / 570;
+  filter: drop-shadow(0 calc(var(--u) * 1.4) calc(var(--u) * 3.5) rgba(0, 0, 0, 0.7));
+}
+
+.chassis {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* === shell =============================================================== */
+
+/* A hairline along the edge where the moulding catches light. It is what makes
+   the silhouette read as a solid object rather than a filled shape. */
+.shell {
+  fill: url(#gShell);
+  stroke: #4A443C;
+  stroke-width: 1.3;
+  stroke-opacity: 0.55;
+}
+
+/* Matte plastic texture, pushed up from barely-there so the shell has a
+   surface rather than a colour. */
+.shell-grain {
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* The screen is the only light source in the room this thing is sitting in, so
+   it throws a faint warm bounce onto the plastic around it. Physically true,
+   and it is what ties the orange glow on the display to the hardware holding
+   it — without it, the two halves look like separate images. */
+.screen-bounce {
+  fill: url(#gBounce);
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Painted plastic, the way old controllers wore: fine speckle in the paint
+   itself. Clipped to each part by fGrainIn so it follows crosses and circles,
+   not just rectangles. */
+/* Shadow thrown by the well wall onto the key face. A part that is brightest
+   along its top edge reads as sticking out; one that is darkest there reads as
+   sitting down inside a hole. Same shape, opposite reading. */
+.inset-shade {
+  fill: url(#gInset);
+  pointer-events: none;
+  transition: transform 60ms;
+}
+
+.part-grain {
+  fill: #FFFFFF;
+  opacity: 0.13;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  transition: transform 60ms;
+}
+
+/* The parting seam: a dark groove with a lit edge just below it, because that
+   is what a moulding line does under a light from above. */
+.seam-dark  { fill: none; stroke: #171615; stroke-width: 1.6; opacity: 0.85; }
+.seam-light { fill: none; stroke: #4A463F; stroke-width: 1.2; opacity: 0.4; }
+
+/* === screen recess ======================================================= */
+
+.screen-well { fill: url(#gWell); }
+.screen-lip  { fill: #08090A; stroke: #16161A; stroke-width: 1.5; }
+
+/* === d-pad =============================================================== */
+
+.pad-well   { fill: url(#gWell); }
+.pad-cross  { fill: url(#gKey); }
+.pad-dimple { fill: #262B31; opacity: 0.75; }
+
+/* Invisible hit areas over the moulded cross. The cross is one piece, so it
+   is drawn once — only the press highlight is per-direction. */
+.pad-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+
+/* The press shading is a SEPARATE rect from the hit area, and the four of them
+   tile rather than overlap. The hit areas can stay generous and overlapping —
+   but if the shading overlapped, holding two directions would double-darken
+   the shared corner, which is exactly the cheap look to avoid. Clipped to the
+   cross so the shading follows the moulded shape instead of poking out. */
+.pad-shade {
+  fill: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 70ms;
+}
+[data-dir].is-on .pad-shade,
+[data-dir]:active .pad-shade { opacity: 0.3; }
+
+/* ENGRAVED, not printed. Under a light from the top-left, a groove cut into
+   plastic reads as two things: a dark recess, and a LIT LOWER LIP where the
+   far wall catches the light. So every glyph is drawn twice — a pale copy
+   nudged down-right, sitting behind a dark one. That pair is the whole trick,
+   and it is what separates a moulded part from a sticker. */
+.glyph-lip {
+  fill: #6E7680;
+  opacity: 0.3;
+  pointer-events: none;
+}
+.pad-glyph {
+  fill: #20252B;
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 70ms;
+}
+
+[data-dir].is-on .pad-glyph,
+[data-dir]:active .pad-glyph { opacity: 1; }
+
+
+
+/* === analog nub ========================================================== */
+
+#nub { cursor: grab; touch-action: none; }
+#nub:active { cursor: grabbing; }
+
+.nub-well { fill: url(#gWell); }
+.nub-rim  { fill: #131211; }
+
+.nub-cap { transition: transform 90ms ease-out; }
+#nub:active .nub-cap { transition: none; }
+
+.nub-cap-face { fill: url(#gCap); }
+.nub-cap-dish { fill: #2B3037; opacity: 0.55; }
+
+/* === speaker ============================================================= */
+
+/* A real grille is holes drilled in the same piece of plastic, not a separate
+   part stuck on. So there is no fill here at all — the shell and its texture
+   show straight through, and only the holes are drawn. */
+/* The grille boundary gets the same two-line treatment as the parting seam and
+   the engraved glyphs: a dark groove with a lit edge peeking out underneath it.
+   One line is a drawn circle; two lines is a cut one. */
+.spk-ring-lip { fill: none; stroke: #6B645A; stroke-width: 1.4; opacity: 0.45; }
+.spk-ring     { fill: none; stroke: #161514; stroke-width: 1.9; opacity: 0.9; }
+.spk-holes { fill: url(#pHoles); }
+
+/* === action keys ========================================================= */
+
+.key-well { fill: url(#gWell); }
+.key-hit  { fill: transparent; pointer-events: all; cursor: pointer; }
+.key-face { fill: url(#gKey); transition: transform 60ms, filter 60ms; }
+
+#treatBtn:active .part-grain,  #treatBtn.is-on .part-grain,
+#talkBtn:active  .part-grain,
+#treatBtn:active .inset-shade, #treatBtn.is-on .inset-shade,
+#talkBtn:active  .inset-shade,
+#treatBtn:active .key-face, #treatBtn.is-on .key-face,
+#talkBtn:active  .key-face {
+  transform: translateY(2.5px);
+  filter: brightness(0.66);
+}
+
+/* The treat mark is an engraved recess with paint in it — which is exactly
+   how a real moulded logo gets its colour. The dark stroke is the groove wall
+   in shadow; the pale copy behind it is the lit lower lip. */
+/* Three layers, and the order is the entire point:
+     lip     pale, offset down-right  the far wall catching light
+     shadow  dark, offset up-left     the near wall in shadow
+     face    flat orange, on top      paint sitting in the recess
+   A highlight on TOP reads as a dome. A shadow above and a lit lip below
+   reads as a groove. Same shape, opposite reading. */
+#treatBtn:active .led-lip,     #treatBtn.is-on .led-lip,
+#treatBtn:active .led-housing, #treatBtn.is-on .led-housing,
+#treatBtn:active .led-treat,   #treatBtn.is-on .led-treat,
+#talkBtn:active  .led-lip,
+#talkBtn:active  .led-housing,
+#talkBtn:active  .led-talk { transform: translateY(2.5px); }
+
+.glyph-lip { transition: transform 60ms; }
+
+/* === silkscreen ========================================================== */
+
+.brand-mark {
+  fill: #211F1D;
+  font: 700 26px "Barlow", sans-serif;
+  letter-spacing: 1.2px;
+}
+/* Stamped into the shell, same two-copy trick as the button glyphs. */
+.brand-lip {
+  fill: #6B655C;
+  opacity: 0.5;
+  font: 700 26px "Barlow", sans-serif;
+  letter-spacing: 1.2px;
+}
+.silk {
+  fill: var(--silk-dim);
+  font: 600 13px "Barlow", sans-serif;
+  letter-spacing: 2.6px;
+  pointer-events: none;
+}
+/* Printed spec text is one family in two sizes, sharing an ink. Anything
+   stamped by the factory — model, ratings, regulatory marks — has to read as
+   coming off the same screen-printing pass, or the case looks assembled from
+   parts of different machines. Control labels (AIM / TREAT / TALK) stay in
+   Barlow, because those are a different job. */
+.silk-dim,
+.silk-tiny {
+  fill: #A69B8D;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-weight: 400;
+  letter-spacing: 1.1px;
+  opacity: 0.9;
+}
+.silk-dim  { font-size: 12px; }
+.silk-tiny { font-size: 9.5px; }
+
+/* === clutter ============================================================= */
+
+.port        { fill: #0D0C0B; stroke: #423D36; stroke-width: 1; }
+.pinhole     { fill: #0A0908; }
+.lanyard-out { fill: #1A1918; }
+.lanyard-in  { fill: #0B0B0B; }
+
+/* === indicator lights ==================================================== */
+
+/* The light IS the button marking — no pictogram. It sits in a drilled lens
+   housing on the key face, so the engraving language still applies: a pale lip
+   below the hole, the dark bore, then the emitter inside it. */
+.led-lip     { fill: #6E7680; opacity: 0.4; pointer-events: none; transition: transform 60ms; }
+.led-housing { fill: #131619; pointer-events: none; transition: transform 60ms; }
+
+/* Same recipe as the SOUND light: a tight bright glow plus a wide faint one.
+   One alone reads as a blur; two read as something actually emitting. */
+.led-treat {
+  fill: var(--treat);
+  filter: drop-shadow(0 0 2.5px rgba(255, 107, 26, 0.95))
+          drop-shadow(0 0 7px rgba(255, 107, 26, 0.45));
+  pointer-events: none;
+  transition: fill 200ms, filter 200ms, transform 60ms;
+}
+.led-treat.is-off {
+  fill: #3A342E;
+  filter: none;
+}
+
+/* TALK gets the identical treatment, just smaller because the key is smaller.
+   The two keys are told apart by size and by the silkscreen under them, which
+   is exactly how real hardware does it. Voice is not built yet, so this is a
+   plain ready light — when it lands, it can pulse while transmitting. */
+.led-talk {
+  fill: var(--treat);
+  filter: drop-shadow(0 0 2px rgba(255, 107, 26, 0.9))
+          drop-shadow(0 0 6px rgba(255, 107, 26, 0.42));
+  pointer-events: none;
+  transition: fill 200ms, filter 200ms, transform 60ms;
+}
+
+/* === sound toggle ======================================================== */
+
+#mute { cursor: pointer; }
+/* Two stacked drop-shadows, not one: a single wide one reads as a blur,
+   a tight bright one plus a wide faint one reads as a glow. */
+.mute-led {
+  fill: var(--treat);
+  filter: drop-shadow(0 0 2.5px rgba(255, 107, 26, 0.95))
+          drop-shadow(0 0 7px rgba(255, 107, 26, 0.45));
+  transition: fill 120ms;
+}
+.mute-label { fill: var(--silk-dim); }
+#mute.is-muted .mute-led   { fill: #4A4941; filter: none; }
+#mute.is-muted .mute-label { opacity: 0.45; }
+
+/* === focus =============================================================== */
+
+#nub:focus-visible,
+#mute:focus-visible,
+[data-dir]:focus-visible,
+#treatBtn:focus-visible,
+#talkBtn:focus-visible {
+  outline: 2px solid var(--treat);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* === the screen ==========================================================
+   Positioned over the SVG's .screen-lip. The SVG scales uniformly and the
+   wrapper is locked to the same aspect ratio, so these percentages stay
+   registered at every size.
+   Mirrors: x=196 y=32 w=608 h=342 in a 1000x570 viewBox (exactly 16:9).
+========================================================================== */
+
+.screen {
+  position: absolute;
+  left:   19.6%;
+  top:     5.614%;
+  width:  60.8%;
+  height: 60.0%;
+}
+
+.lcd {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #08090A;
+  border-radius: calc(var(--u) * 0.5);
+  cursor: crosshair;
+}
+
+#lcd {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- overlays ----------------------------------------------------------- */
+
+.lcd > .layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Coarse noise, resampled a few times a second. Reads as low light.
+   TODO: this moves into the lens shader, where it can be weighted by
+   brightness so it lives in the shadows the way real sensor noise does. */
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.2;
+  mix-blend-mode: soft-light;
+  animation: grain 0.7s steps(1) infinite;
+}
+
+@keyframes grain {
+  0%   { background-position:   0px   0px; }
+  25%  { background-position: -37px  16px; }
+  50%  { background-position:  24px -31px; }
+  75%  { background-position: -19px -22px; }
+}
+
+.dither {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23d)'/%3E%3C/svg%3E");
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+}
+
+/* The vignette lives in the lens shader now — see post.js. */
+
+/* --- aim ---------------------------------------------------------------- */
+
+/* Hovering the picture pans the head, faster the further out you go. This
+   ellipse is the dead centre where nothing happens, shown only on hover.
+   Its size is CONFIG.aim.mouseDeadzone as a percentage; keep them in step. */
+.deadzone {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 18%;
+  height: 18%;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 180ms;
+  pointer-events: none;
+}
+.lcd:hover .deadzone { opacity: 1; }
+
+/* A dot, not a crosshair. A crosshair is a weapon reticle; this is a camera
+   focus point, which is what these devices actually put on screen. */
+.reticle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: calc(var(--u) * 0.4);
+  height: calc(var(--u) * 0.4);
+  margin: calc(var(--u) * -0.2) 0 0 calc(var(--u) * -0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.charge {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 0.55);
+  margin: calc(var(--u) * 1.3) 0 0 calc(var(--u) * -5);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 0;
+  transition: opacity 90ms;
+  pointer-events: none;
+}
+.charge.is-on { opacity: 1; }
+.charge i { display: block; height: 100%; width: 0; background: var(--treat); }
+
+/* --- the status strip --------------------------------------------------- */
+
+.bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 1.1);
+  background: rgba(10, 13, 16, 0.3);
+  backdrop-filter: blur(5px) saturate(1.15);
+  -webkit-backdrop-filter: blur(5px) saturate(1.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: calc(var(--u) * 1.5);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #F2EFE4;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.95),
+               -0.5px 0 0 rgba(255, 70, 60, 0.36),
+                0.5px 0 0 rgba(70, 140, 255, 0.32),
+               0 0 6px rgba(242, 239, 228, 0.32);
+  pointer-events: none;
+}
+
+/* The glass carries its own grain, so the pane looks like part of the signal
+   instead of a clean surface floating in front of it. */
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23b)'/%3E%3C/svg%3E");
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Text blur lives here, not on .bar — see the note above. */
+.bar-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.3);
+  filter: blur(0.45px);
+}
+
+.wifi {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: calc(var(--u) * 0.24);
+  height: calc(var(--u) * 1.25);
+}
+.wifi {
+  color: var(--treat);
+  filter: drop-shadow(0 0 2px rgba(255, 107, 26, 0.85))
+          drop-shadow(0 0 5px rgba(255, 107, 26, 0.4));
+}
+.wifi i { width: calc(var(--u) * 0.3); background: currentColor; border-radius: 1px; }
+.wifi i:nth-child(1) { height: 30%; }
+.wifi i:nth-child(2) { height: 55%; }
+.wifi i:nth-child(3) { height: 78%; }
+.wifi i:nth-child(4) { height: 100%; opacity: 0.28; }
+
+.bat { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.5); }
+.bat-cell {
+  color: var(--treat);
+  filter: drop-shadow(0 0 2px rgba(255, 107, 26, 0.85))
+          drop-shadow(0 0 5px rgba(255, 107, 26, 0.4));
+  position: relative;
+  display: inline-block;
+  width: calc(var(--u) * 2.8);
+  height: calc(var(--u) * 1.3);
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  padding: 1px;
+}
+.bat-cell i { display: block; height: 100%; background: currentColor; }
+.bat-cell::after {
+  content: "";
+  position: absolute;
+  left: 100%; top: 30%;
+  width: calc(var(--u) * 0.25);
+  height: 40%;
+  background: currentColor;
+}
+
+.ammo-wrap { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.6); }
+.ammo {
+  display: inline-flex;
+  gap: calc(var(--u) * 0.26);
+  filter: drop-shadow(0 0 2px rgba(255, 107, 26, 0.85))
+          drop-shadow(0 0 5px rgba(255, 107, 26, 0.4));
+}
+.ammo i {
+  width: calc(var(--u) * 0.58);
+  height: calc(var(--u) * 1.2);
+  background: var(--treat);
+  border-radius: 1px;
+}
+.ammo i.spent { background: rgba(255, 255, 255, 0.2); }
+
+/* --- overlay text, bottom ----------------------------------------------- */
+
+.hud {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--u) * 1) calc(var(--u) * 1.2);
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: calc(var(--u) * 1.5);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #F2EFE4;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.95),
+               -0.55px 0 0 rgba(255, 70, 60, 0.36),
+                0.55px 0 0 rgba(70, 140, 255, 0.32);
+  /* Softer than the top strip. This text sits over moving picture rather than
+     a backing bar, so it needs more help to stop looking pasted on. */
+  filter: blur(0.7px);
+  pointer-events: none;
+}
+
+/* Same orange and the same two-stage bloom as the lights on the device, so the
+   screen and the hardware speak one language. Sits just under the glass bar,
+   floating on the picture — which is where a camera actually puts it. */
+.rec {
+  position: absolute;
+  top: calc(var(--u) * 4.6);
+  right: calc(var(--u) * 1.3);
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: calc(var(--u) * 2.1);
+  letter-spacing: 0.16em;
+  line-height: 1;
+  color: var(--treat);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.9),
+               -0.6px 0 0 rgba(255, 40, 40, 0.4),
+                0.6px 0 0 rgba(60, 130, 255, 0.3),
+               0 0 9px rgba(255, 107, 26, 0.55);
+  filter: blur(0.7px);
+  pointer-events: none;
+}
+.rec::before {
+  content: "";
+  display: inline-block;
+  width: calc(var(--u) * 1.05);
+  height: calc(var(--u) * 1.05);
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: calc(var(--u) * 0.6);
+  vertical-align: calc(var(--u) * 0.02);
+  box-shadow: 0 0 calc(var(--u) * 0.7) rgba(255, 107, 26, 0.95),
+              0 0 calc(var(--u) * 2) rgba(255, 107, 26, 0.5);
+  animation: blink 2s steps(1) infinite;
+}
+@keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.2; } }
+
+/* Mostly steady with two brief dips per cycle. A rhythmic blink on a location
+   label reads as a broken sign; an irregular 90ms dropout reads as a feed
+   losing its grip for a moment, which is the thing worth suggesting. */
+@keyframes signalDrop {
+  0%,  43%  { opacity: 1; }
+  44%       { opacity: 0.3; }
+  45%, 77%  { opacity: 1; }
+  78%       { opacity: 0.55; }
+  79%, 100% { opacity: 1; }
+}
+.hud span { animation: signalDrop 9s steps(1) infinite; }
+
+/* === degrading the labels into the picture ===============================
+   The scanline strips went too far and read as a filter rather than as wear.
+   What is left is quieter and does the same job: a light chromatic fringe
+   matching the lens, a touch of transparency, the blur on each label, and the
+   grain layered over the top.
+
+   Deliberately NOT applied to the reticle, charge bar or deadzone ring: those
+   are the controls you aim with, and they should stay readable.
+========================================================================== */
+
+.bar-side,
+.hud span,
+.rec { opacity: 0.94; }
+
+/* === outside the fiction ================================================= */
+
+/* Hard on/off steps rather than a smooth fade, which is what makes it read as
+   old hardware instead of a CSS transition — but slow, and mostly on. A short
+   dip every few seconds says "idle indicator". An even on/off rhythm says
+   "billboard", which is not what this is. */
+.hint {
+  margin: 0;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: calc(var(--u) * 1.35);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--treat);
+  text-shadow: 0 0 8px rgba(255, 107, 26, 0.55),
+               0 0 22px rgba(255, 107, 26, 0.25);
+  text-align: center;
+  animation: attract 5.5s steps(1) infinite;
+}
+
+@keyframes attract {
+  0%,  90%  { opacity: 1; }
+  91%, 96%  { opacity: 0.3; }
+  97%, 100% { opacity: 1; }
+}
+
+#noWebgl {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  background: #0B0C0D;
+  color: #D9DEE4;
+  font-family: "Barlow", system-ui, sans-serif;
+  font-size: 20px;
+  text-align: center;
+  padding: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain, .rec::before, .hud span, .hint { animation: none; }
+}

@@ -1,0 +1,13 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Nothing is built or installed — Three.js loads from a CDN via the import map
+# in index.html. If that ever changes, node_modules goes here.
+node_modules/

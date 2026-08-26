@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEOWMI 2</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="src/style.css">
+
+<!-- No npm, no build step. The browser resolves "three" using this map. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<div class="device">
+
+  <!-- =====================================================================
+       The chassis. One SVG, because a handheld is not a stack of rectangles:
+       it has a sculpted silhouette, keys sitting in cutouts with real
+       clearance, chamfers that catch light, and a parting seam that follows
+       a curve. None of that is expressible in CSS boxes.
+
+       Controls keep the ids the input code already looks for, so main.js
+       barely notices the change.
+       ===================================================================== -->
+  <svg class="chassis" viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- One light direction, top-left, committed to everywhere. -->
+      <linearGradient id="gShell" x1="0.15" y1="0" x2="0.7" y2="1">
+        <stop offset="0"    stop-color="#443F39"/>
+        <stop offset="0.4"  stop-color="#2E2C2A"/>
+        <stop offset="1"    stop-color="#191817"/>
+      </linearGradient>
+
+      <!-- Raised parts: bright on top, dark underneath. -->
+      <linearGradient id="gKey" x1="0" y1="0" x2="0.25" y2="1">
+        <stop offset="0"   stop-color="#40474F"/>
+        <stop offset="0.5" stop-color="#3A4048"/>
+        <stop offset="1"   stop-color="#31363D"/>
+      </linearGradient>
+
+      <!-- Recesses: exactly inverted. Dark at the top, catching light below. -->
+      <linearGradient id="gWell" x1="0" y1="0" x2="0.2" y2="1">
+        <stop offset="0"   stop-color="#0E0D0C"/>
+        <stop offset="0.7" stop-color="#191817"/>
+        <stop offset="1"   stop-color="#312E2A"/>
+      </linearGradient>
+
+      <radialGradient id="gCap" cx="0.36" cy="0.3" r="0.85">
+        <stop offset="0"   stop-color="#4E565F"/>
+        <stop offset="0.6" stop-color="#3A4048"/>
+        <stop offset="1"   stop-color="#282D33"/>
+      </radialGradient>
+
+      <!-- Matte ABS is never a mathematically flat fill, and flat fills are
+           exactly what reads as vector art. -->
+      <filter id="fGrain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" result="n"/>
+        <feColorMatrix in="n" type="saturate" values="0"/>
+      </filter>
+
+      <filter id="fGrainIn" x="-2%" y="-2%" width="104%" height="104%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" result="n"/>
+        <feColorMatrix in="n" type="saturate" values="0" result="m"/>
+        <feComposite in="m" in2="SourceGraphic" operator="in"/>
+      </filter>
+
+      <!-- The screen throws warm light onto the plastic around it. -->
+      <radialGradient id="gBounce" cx="0.5" cy="0.5" r="0.4">
+        <stop offset="0"    stop-color="#FFB070" stop-opacity="0.5"/>
+        <stop offset="0.3"  stop-color="#FF9A50" stop-opacity="0.26"/>
+        <stop offset="0.58" stop-color="#FF8A3C" stop-opacity="0.09"/>
+        <stop offset="0.82" stop-color="#FF8A3C" stop-opacity="0.02"/>
+        <stop offset="1"    stop-color="#FF8A3C" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- The well wall casts a shadow down onto a key sitting inside it. This
+           is what tells the eye "recessed" instead of "stuck on top". -->
+      <linearGradient id="gInset" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0"    stop-color="#000000" stop-opacity="0.42"/>
+        <stop offset="0.26" stop-color="#000000" stop-opacity="0.17"/>
+        <stop offset="0.58" stop-color="#000000" stop-opacity="0.04"/>
+        <stop offset="1"    stop-color="#000000" stop-opacity="0"/>
+      </linearGradient>
+
+      <pattern id="pHoles" width="13" height="13" patternUnits="userSpaceOnUse">
+        <circle cx="6.5" cy="6.5" r="2.6" fill="#131211"/>
+      </pattern>
+
+      <clipPath id="clipCross">
+        <rect x="72" y="102" width="56"  height="116" rx="14"/>
+        <rect x="42" y="132" width="116" height="56"  rx="14"/>
+      </clipPath>
+
+      <clipPath id="clipShell">
+        <path d="M58,4 H942 Q996,4 996,58 V210 Q996,330 958,420 Q918,516 828,548
+                 Q742,578 690,510 Q648,452 588,438 H412 Q352,452 310,510
+                 Q258,578 172,548 Q82,516 42,420 Q4,330 4,210 V58 Q4,4 58,4 Z"/>
+      </clipPath>
+    </defs>
+
+    <!-- ---- shell ---- -->
+    <path class="shell"
+          d="M58,4 H942 Q996,4 996,58 V210 Q996,330 958,420 Q918,516 828,548
+             Q742,578 690,510 Q648,452 588,438 H412 Q352,452 310,510
+             Q258,578 172,548 Q82,516 42,420 Q4,330 4,210 V58 Q4,4 58,4 Z"/>
+    <g clip-path="url(#clipShell)">
+      <rect class="screen-bounce" x="-100" y="-297" width="1200" height="1000"/>
+      <rect class="shell-grain" x="0" y="0" width="1000" height="570" filter="url(#fGrain)"/>
+    </g>
+
+    <!-- parting seam where the two halves of the shell meet -->
+    <path class="seam-dark"  d="M22,214 Q22,332 58,418 Q96,508 176,532 Q252,556 300,498"/>
+    <path class="seam-light" d="M22,217 Q22,335 58,421 Q96,511 176,535 Q252,559 300,501"/>
+    <path class="seam-dark"  d="M978,214 Q978,332 942,418 Q904,508 824,532 Q748,556 700,498"/>
+    <path class="seam-light" d="M978,217 Q978,335 942,421 Q904,511 824,535 Q748,559 700,501"/>
+
+    <!-- ---- screen recess, with a chamfered lip ---- -->
+    <rect class="screen-well" x="186" y="24" width="628" height="358" rx="14"/>
+    <rect class="screen-lip"  x="196" y="32" width="608" height="342" rx="10"/>
+
+    <!-- ---- d-pad ----
+         The cutout is 7 units bigger all round. That clearance gap is what a
+         moulded part actually looks like, and boxes never have one. -->
+    <g class="pad-well">
+      <rect x="65" y="95"  width="70"  height="130" rx="18"/>
+      <rect x="35" y="125" width="130" height="70"  rx="18"/>
+    </g>
+    <g class="pad-cross">
+      <rect x="72" y="102" width="56"  height="116" rx="14"/>
+      <rect x="42" y="132" width="116" height="56"  rx="14"/>
+    </g>
+    <g class="inset-shade">
+      <rect x="72" y="102" width="56"  height="116" rx="14"/>
+      <rect x="42" y="132" width="116" height="56"  rx="14"/>
+    </g>
+    <g class="part-grain" filter="url(#fGrainIn)">
+      <rect x="72" y="102" width="56"  height="116" rx="14"/>
+      <rect x="42" y="132" width="116" height="56"  rx="14"/>
+    </g>
+    <circle class="pad-dimple" cx="100" cy="160" r="11"/>
+
+    <g id="padUp" data-dir="fwd" tabindex="0" role="button" aria-label="Drive forward">
+      <rect class="pad-shade" clip-path="url(#clipCross)" x="72" y="102" width="56" height="30"/>
+      <rect class="pad-hit" x="72" y="102" width="56" height="48"/>
+      <path class="glyph-lip" d="M100.5,111.5 l9,13 h-18 Z"/>
+      <path class="pad-glyph" d="M100,110.5 l9,13 h-18 Z"/>
+    </g>
+    <g id="padDown" data-dir="back" tabindex="0" role="button" aria-label="Drive backward">
+      <rect class="pad-shade" clip-path="url(#clipCross)" x="72" y="188" width="56" height="30"/>
+      <rect class="pad-hit" x="72" y="170" width="56" height="48"/>
+      <path class="glyph-lip" d="M100.5,210.5 l-9,-13 h18 Z"/>
+      <path class="pad-glyph" d="M100,209.5 l-9,-13 h18 Z"/>
+    </g>
+    <g id="padLeft" data-dir="left" tabindex="0" role="button" aria-label="Turn left">
+      <rect class="pad-shade" clip-path="url(#clipCross)" x="42" y="132" width="30" height="56"/>
+      <rect class="pad-hit" x="42" y="132" width="48" height="56"/>
+      <path class="glyph-lip" d="M51,161 l13,-9 v18 Z"/>
+      <path class="pad-glyph" d="M50.5,160 l13,-9 v18 Z"/>
+    </g>
+    <g id="padRight" data-dir="right" tabindex="0" role="button" aria-label="Turn right">
+      <rect class="pad-shade" clip-path="url(#clipCross)" x="128" y="132" width="30" height="56"/>
+      <rect class="pad-hit" x="110" y="132" width="48" height="56"/>
+      <path class="glyph-lip" d="M150,161 l-13,9 v-18 Z"/>
+      <path class="pad-glyph" d="M149.5,160 l-13,9 v-18 Z"/>
+    </g>
+
+    <!-- ---- analog nub ---- -->
+    <g id="nub" tabindex="0" role="button" aria-label="Aim">
+      <circle class="nub-well" cx="100" cy="336" r="52"/>
+      <circle class="nub-rim"  cx="100" cy="336" r="44"/>
+      <g class="nub-cap">
+        <circle class="nub-cap-face" cx="100" cy="336" r="33"/>
+        <circle class="part-grain" filter="url(#fGrainIn)" cx="100" cy="336" r="33"/>
+        <circle class="nub-cap-dish" cx="100" cy="336" r="21"/>
+      </g>
+    </g>
+    <text class="silk" x="100" y="406" text-anchor="middle">AIM</text>
+
+    <!-- ---- speaker ---- -->
+    <text class="silk-tiny" x="900" y="52" text-anchor="middle">FCC ID: 2AK9L-MW2 &#183; CE</text>
+    <circle class="spk-ring-lip" cx="900" cy="151.5" r="47"/>
+    <circle class="spk-ring"     cx="900" cy="150"   r="47"/>
+    <circle class="spk-holes" cx="900" cy="150" r="41"/>
+
+    <!-- ---- action keys: small, in cutouts, pictograms not words ---- -->
+    <rect class="key-well" x="836" y="228" width="128" height="60" rx="16"/>
+    <g id="treatBtn" tabindex="0" role="button" aria-label="Throw a treat">
+      <rect class="key-hit"  x="836" y="228" width="128" height="60"/>
+      <rect class="key-face" x="843" y="235" width="114" height="46" rx="12"/>
+      <rect class="inset-shade" x="843" y="235" width="114" height="46" rx="12"/>
+      <rect class="part-grain" filter="url(#fGrainIn)" x="843" y="235" width="114" height="46" rx="12"/>
+      <circle class="led-lip"     cx="900.7" cy="259.7" r="10.5"/>
+      <circle class="led-housing" cx="900"   cy="258"   r="10.5"/>
+      <circle class="led-treat" id="treatLed" cx="900" cy="258" r="6.4"/>
+    </g>
+    <text class="silk" x="900" y="308" text-anchor="middle">TREAT</text>
+
+    <rect class="key-well" x="848" y="332" width="104" height="52" rx="14"/>
+    <g id="talkBtn" tabindex="0" role="button" aria-label="Talk">
+      <rect class="key-hit"  x="848" y="332" width="104" height="52"/>
+      <rect class="key-face" x="855" y="339" width="90" height="38" rx="10"/>
+      <rect class="inset-shade" x="855" y="339" width="90" height="38" rx="10"/>
+      <rect class="part-grain" filter="url(#fGrainIn)" x="855" y="339" width="90" height="38" rx="10"/>
+      <circle class="led-lip"     cx="900.6" cy="359.5" r="9"/>
+      <circle class="led-housing" cx="900"   cy="358"   r="9"/>
+      <circle class="led-talk" id="talkLed"  cx="900"   cy="358" r="5.4"/>
+    </g>
+    <text class="silk" x="900" y="404" text-anchor="middle">TALK</text>
+
+    <!-- ---- silkscreen and manufacturing clutter ---- -->
+    <text class="brand-lip"  x="200.7" y="409.5">MEOWMI 2</text>
+    <text class="brand-mark" x="200"   y="408">MEOWMI 2</text>
+    <text class="silk-dim"   x="200"   y="429">MODEL MW-2</text>
+
+    <g id="mute" tabindex="0" role="button" aria-label="Toggle sound">
+      <rect class="key-hit" x="682" y="392" width="122" height="34"/>
+      <circle class="mute-led" cx="696" cy="409" r="5"/>
+      <text class="silk mute-label" x="711" y="414">SOUND</text>
+    </g>
+
+    <!-- the debris of manufacturing: real objects are covered in it -->
+    <rect class="port" x="444" y="395" width="52" height="11" rx="5.5"/>
+    <text class="silk-tiny" x="470" y="424" text-anchor="middle">5V &#8212; 1A</text>
+    <circle class="pinhole" cx="550" cy="400" r="3.4"/>
+    <text class="silk-tiny" x="550" y="424" text-anchor="middle">RST</text>
+    <circle class="lanyard-out" cx="826" cy="512" r="12"/>
+    <circle class="lanyard-in"  cx="826" cy="512" r="6.5"/>
+  </svg>
+
+  <!-- =====================================================================
+       The feed. Stays HTML, positioned over the SVG's screen recess by
+       percentage — the SVG scales uniformly, so it stays registered at any
+       size. These numbers mirror .screen-lip in the viewBox above.
+       ===================================================================== -->
+  <div class="screen">
+    <div class="lcd">
+      <canvas id="lcd" width="960" height="540"></canvas>
+
+      <div class="bar">
+        <span class="bar-side">
+          <span class="wifi" title="Wi-Fi"><i></i><i></i><i></i><i></i></span>
+          <span class="bat">
+            <span class="bat-cell"><i id="battFill"></i></span>
+            <span id="battText">38%</span>
+          </span>
+          <span class="ammo-wrap">TREATS <span class="ammo" id="ammo"></span></span>
+        </span>
+        <span class="bar-side">
+          <span class="temp" id="osdTemp">28.4&deg;C</span>
+          <span id="osdClock">14:07:41</span>
+        </span>
+      </div>
+
+      <div class="deadzone"></div>
+      <div class="reticle"></div>
+      <div class="charge" id="charge"><i></i></div>
+
+      <!-- REC floats on the picture at top right, where cameras put it, rather
+           than sitting inside the status bar. The location label keeps the
+           bottom left to itself. -->
+      <div class="rec">REC</div>
+
+      <div class="hud">
+        <span>CAM 01 &middot; LIVING ROOM</span>
+      </div>
+
+      <!-- Noise goes on top of everything, overlays included, so the burned-in
+           text belongs to the picture instead of floating above it. -->
+      <div class="layer dither"></div>
+      <div class="layer grain"></div>
+    </div>
+  </div>
+</div>
+
+<p class="hint">WASD or d-pad drives &nbsp;&middot;&nbsp; the nub or the picture aims &nbsp;&middot;&nbsp; hold SPACE or TREAT to charge a throw &nbsp;&middot;&nbsp; SHIFT to creep</p>
+
+<div id="noWebgl" hidden>
+  This browser can&rsquo;t run WebGL.<br>Try Chrome, Edge or Firefox.
+</div>
+
+<noscript>
+  <div id="noWebgl">JavaScript is switched off. The MEOWMI 2 needs it.</div>
+</noscript>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
