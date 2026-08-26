@@ -470,6 +470,10 @@ function update(dt) {
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
 // --- the status strip -------------------------------------------------------
+// The version string lives in config.js and lands in the HTML here, so a
+// release bump is one edit in the one file that holds every other number.
+document.getElementById('osdVer').textContent = `FW ${CONFIG.version}`;
+
 const clockEl = document.getElementById('osdClock');
 let seconds = 14 * 3600 + 7 * 60 + 41; // 14:07:41, deep in the afternoon
 

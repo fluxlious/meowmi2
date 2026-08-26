@@ -8,6 +8,11 @@
 
 export const CONFIG = {
 
+  // Shown at the bottom right of the feed. Styled as the camera's firmware
+  // build, because that is what a pet cam would actually print there — but
+  // it is really the version of the game. Bump it when something ships.
+  version: '0.1.0',
+
   // The feed's real resolution: 20:9, matching the widescreen recess in the
   // chassis. Wider than a phone stream really is, but the game is played on
   // this picture, so the screen gets the real estate.

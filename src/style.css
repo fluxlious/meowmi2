@@ -587,9 +587,12 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #F2EFE4;
+  /* Identical shadow stack to .bar, fringe offsets included — the hud used
+     a fractionally wider 0.55px fringe, and that half-tenth of smear was
+     enough to read as a different (warmer, dimmer) white than the top bar. */
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.95),
-               -0.55px 0 0 rgba(255, 70, 60, 0.36),
-                0.55px 0 0 rgba(70, 140, 255, 0.32),
+               -0.5px 0 0 rgba(255, 70, 60, 0.36),
+                0.5px 0 0 rgba(70, 140, 255, 0.32),
                0 0 6px rgba(242, 239, 228, 0.32);
   pointer-events: none;
 }
@@ -628,23 +631,10 @@ body {
 }
 @keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0.2; } }
 
-/* Mostly steady with two brief dips per cycle. A rhythmic blink on a location
-   label reads as a broken sign; an irregular 90ms dropout reads as a feed
-   losing its grip for a moment, which is the thing worth suggesting. */
-@keyframes signalDrop {
-  0%,  43%  { opacity: 1; }
-  44%       { opacity: 0.3; }
-  45%, 77%  { opacity: 1; }
-  78%       { opacity: 0.55; }
-  79%, 100% { opacity: 1; }
-}
 /* Blurred at the bar's 0.45px, not the old 0.7px — the extra softness was
    compensation for sitting on bare moving picture, and the glass now does
    that job. */
-.hud span {
-  animation: signalDrop 9s steps(1) infinite;
-  filter: blur(0.45px);
-}
+.hud span { filter: blur(0.45px); }
 
 /* === degrading the labels into the picture ===============================
    The scanline strips went too far and read as a filter rather than as wear.
@@ -699,5 +689,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grain, .rec::before, .hud span, .hint { animation: none; }
+  .grain, .rec::before, .hint { animation: none; }
 }
