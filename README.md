@@ -1,5 +1,7 @@
 # MEOWMI 2
 
+![The MEOWMI 2 handheld, live in the living room](shots/fw0.1.0.png)
+
 You are on holiday somewhere hot and Mediterranean. Back home your cat is alone in
 your flat with a robot pet-camera — the kind that drives around and launches treats.
 A motion notification arrives, you tap it, and you are live.
@@ -51,6 +53,7 @@ at the same time.
 | `src/post.js` | The lens — barrel distortion, chromatic aberration, tone mapping |
 | `src/audio.js` | All sound, generated in the browser. No audio files |
 | `src/style.css` | The device, and the overlays on the screen |
+| `shots/` | One screenshot per version, named `fwX.Y.Z.png` after the FW number the OSD prints |
 
 ### If you want to change something
 
